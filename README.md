@@ -44,13 +44,18 @@ step5: configure the db credentials on database.env file
 ```
 sudo nano database.env
 ```
+```env
 DB_HOST=<mysql-container-name>
 DB_USER=root
 DB_PASS=toor
 DB_NAME=node
+```
 
-ctrl + o = save
-ctrl + x = exit
+Save and exit:
+
+- `Ctrl + O` → Save
+- `Enter` → Confirm
+- `Ctrl + X` → Exit
 
 step6: build docker image 
 

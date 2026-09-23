@@ -7,51 +7,102 @@
 ✅ Update a name  
 ✅ Delete a name  
 
-Clone the Repo in your Machine
+## Clone the Repo in your Machine
 ```
-git clone <url>
-```
-
-
-To install Node.js on your system, use the following commands:
-
-```
-sudo apt update -y
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt install -y nodejs
-```
-Check version:
-
-```
-node -v
-npm -v
-```
-
-## Set Environment
-```
-cd nodeserver
-sudo npm install express mysql2 dotenv
+git clone https://github.com/PraveenEdward/nodedocker.git
 ```
 
 
-### Change database host in database.env file     
+## Option 1 : Run the application without docker compose, run seperate containers using docker network & volumes [ mysql, application, nginx ]
+
+Step1: create docker network
+
 ```
-DB_HOST=
-DB_USER=
-DB_PASS=
-DB_NAME=
+docker network create <docker-network-name>
+```
+
+Step2: run mysql container
+
+```
+docker run -d --name <mysql-container-name> --network <docker-network-name> -e MYSQL_ROOT_PASSWORD=toor -e MYSQL_DATABASE=node -p 3306:3306 mysql:latest
+```
+
+Step3: Install mysql-client on server
+
+```
+sudo apt install mysql-client -y
+```
+
+step4: verify the DB container status by connecting using mysql client
+
+```
+sudo mysql -h 127.0.0.1 -u root -p
+```
+
+step5: configure the db credentials on database.env file
+
+```
+sudo nano database.env
+```
+DB_HOST=<mysql-container-name>
+DB_USER=root
+DB_PASS=toor
+DB_NAME=node
+
+ctrl + o = save
+ctrl + x = exit
+
+step6: build docker image 
+
+```
+docker build -t <image-name>:<tag-name> .
+```
+
+step7: run node application container.
+
+```
+docker run -d --name <node-container-name> --network <docker-container-network> -p 3000:3000 <image-name>:<tag-name>
 ```
 
 
-### Start the Server
+step8: Edit the default.conf file for nginx reversy proxy to node container
+```
+sudo nano nginx/default.conf
 
-```node server.js```
+```
 
-### Manually Check Sql Connection [ Optional ]
+add :
+```
+server {
+    listen 80;
 
-`mysql -h <sqlhost-ip> -u root -p`
+    location / {
+        proxy_pass http://<node-container-name>:3000;
 
-### Open the Website using
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+ctrl + o = save
+ctrl + x = exit
 
-`http://<server-ip>:3000`
+step9: run nginx container with docker volume to inject reverse proxy config file
+```
+docker run -d --name <nginx-container-name> --network <docker-network-name> -v /<path>/nginx/default.conf:/etc/nginx/conf.d/default.conf -p 80:80 nginx:latest
+```
+
+### access the application on browser
+
+http://<server-ip>
+
+
+
+### Option 2 run the docker compose file to create container simultaneously
+
+```
+docker compose up -d
+```
 

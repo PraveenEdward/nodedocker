@@ -94,15 +94,19 @@ step9: run nginx container with docker volume to inject reverse proxy config fil
 docker run -d --name <nginx-container-name> --network <docker-network-name> -v /<path>/nginx/default.conf:/etc/nginx/conf.d/default.conf -p 80:80 nginx:latest
 ```
 
-### access the application on browser
+
+
+### Option 2 run the docker compose file to build and run all container simultaneously
+
+```
+docker compose up -d --build
+```
+
+
+## Access the application on browser
 
 http://<server-ip>
 
 
 
-### Option 2 run the docker compose file to create container simultaneously
-
-```
-docker compose up -d
-```
-
+## Thank you !
